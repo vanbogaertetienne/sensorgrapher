@@ -16,7 +16,8 @@ class MyWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
 	self.set_border_width(3)
-	self.sensorID = 0
+	self.sensor1ID = 0
+	self.sensor2ID = 2
 	self.sensorInterval = 120
 	self.sensorLimit = 1
 
@@ -35,24 +36,42 @@ class MyWindow(Gtk.Window):
 	self.page1.set_column_spacing(20)
 	self.page1.set_row_spacing(20)
         
-	sensors = Gtk.ListStore(int, str, int)
+	sensors1 = Gtk.ListStore(int, str, int)
+	sensors2 = Gtk.ListStore(int, str, int)
 
-        sensorDataRendererText = Gtk.CellRendererText()
-        sensorData = fetcher.sensors()
-	sensorData.update()
-	count = sensorData.count()
-	for sensorNumber in range(0, sensorData.count()):
-	    sensorDescription = sensorData.sensorDescription(sensorNumber)
-	    sensorID = sensorData.sensorID(sensorNumber)
-	    sensors.append([sensorNumber, sensorDescription, sensorID])
-	self.sensorCombo = Gtk.ComboBox.new_with_model(sensors)
-	self.sensorCombo.pack_start(sensorDataRendererText, True)
-	self.sensorCombo.add_attribute(sensorDataRendererText, "text", 1)
-	self.sensorCombo.connect("changed", self.onComboChanged)
-	self.sensorCombo.set_id_column(2)
-	self.sensorCombo.set_active(0)
-	self.page1.attach(Gtk.Label('Sensors'), 0, 0, 1, 1)
-	self.page1.attach(self.sensorCombo, 1, 0, 1, 1)
+        sensor1DataRendererText = Gtk.CellRendererText()
+        sensor1Data = fetcher.sensors()
+	sensor1Data.update()
+	count = sensor1Data.count()
+	for sensor1Number in range(0, sensor1Data.count()):
+	    sensor1Description = sensor1Data.sensorDescription(sensor1Number)
+	    sensor1ID = sensor1Data.sensorID(sensor1Number)
+	    sensors1.append([sensor1Number, sensor1Description, sensor1ID])
+	self.sensor1Combo = Gtk.ComboBox.new_with_model(sensors1)
+	self.sensor1Combo.pack_start(sensor1DataRendererText, True)
+	self.sensor1Combo.add_attribute(sensor1DataRendererText, "text", 1)
+	self.sensor1Combo.connect("changed", self.onComboChanged)
+	self.sensor1Combo.set_id_column(2)
+	self.sensor1Combo.set_active(0)
+	self.page1.attach(Gtk.Label('Sensor 1'), 0, 0, 1, 1)
+	self.page1.attach(self.sensor1Combo, 1, 0, 1, 1)
+
+	sensor2DataRendererText = Gtk.CellRendererText()
+        sensor2Data = fetcher.sensors()
+	sensor2Data.update()
+	count = sensor2Data.count()
+	for sensor2Number in range(0, sensor2Data.count()):
+	    sensor2Description = sensor2Data.sensorDescription(sensor2Number)
+	    sensor2ID = sensor2Data.sensorID(sensor2Number)
+	    sensors2.append([sensor2Number, sensor2Description, sensor2ID])
+	self.sensor2Combo = Gtk.ComboBox.new_with_model(sensors2)
+	self.sensor2Combo.pack_start(sensor2DataRendererText, True)
+	self.sensor2Combo.add_attribute(sensor2DataRendererText, "text", 1)
+	self.sensor2Combo.connect("changed", self.onComboChanged)
+	self.sensor2Combo.set_id_column(2)
+	self.sensor2Combo.set_active(0)
+	self.page1.attach(Gtk.Label('Sensor 2'), 0, 1, 1, 1)
+	self.page1.attach(self.sensor2Combo, 1, 1, 1, 1)
 
 	sensorIntervalRendererText = Gtk.CellRendererText()
 	sensorInterval = Gtk.ListStore(int, str)
@@ -69,8 +88,8 @@ class MyWindow(Gtk.Window):
 	self.sensorIntervalCombo.add_attribute(sensorIntervalRendererText, "text", 1)
 	self.sensorIntervalCombo.connect("changed", self.onComboChanged)
 	self.sensorIntervalCombo.set_active(3)
-	self.page1.attach(Gtk.Label('Sensor Data Interval'), 0, 1, 1, 1)
-	self.page1.attach(self.sensorIntervalCombo, 1, 1, 1, 1)
+	self.page1.attach(Gtk.Label('Sensor Data Interval'), 0, 2, 1, 1)
+	self.page1.attach(self.sensorIntervalCombo, 1, 2, 1, 1)
 
         sensorLimitRendererText = Gtk.CellRendererText()
         sensorLimit = Gtk.ListStore(int, str)
@@ -84,8 +103,9 @@ class MyWindow(Gtk.Window):
         self.sensorLimitCombo.add_attribute(sensorLimitRendererText, "text", 1)
         self.sensorLimitCombo.connect("changed", self.onComboChanged)
         self.sensorLimitCombo.set_active(0)
-        self.page1.attach(Gtk.Label('Limit Sensor Data'), 0, 2, 1, 1)
-        self.page1.attach(self.sensorLimitCombo, 1, 2, 1, 1)
+        self.page1.attach(Gtk.Label('Limit Sensor Data'), 0, 3, 1, 1)
+        self.page1.attach(self.sensorLimitCombo, 1, 3, 1, 1)
+
 	
 	self.notebook.append_page(self.page1, Gtk.Label('Sensors'))
 
@@ -95,11 +115,20 @@ class MyWindow(Gtk.Window):
     
     def onComboChanged(self, combo):
 	try:
-	    sensorIter = self.sensorCombo.get_active_iter()
+	    sensorIter = self.sensor1Combo.get_active_iter()
 	    if sensorIter == None:
 	        return
-	    sensorModel = self.sensorCombo.get_model()
-	    self.sensorID = sensorModel[sensorIter][2]
+	    sensor1Model = self.sensor1Combo.get_model()
+	    self.sensor1ID = sensor1Model[sensorIter][2]
+	except:
+	    return
+        
+	try:
+	    sensorIter = self.sensor2Combo.get_active_iter()
+	    if sensorIter == None:
+	        return
+	    sensor2Model = self.sensor2Combo.get_model()
+	    self.sensor2ID = sensor2Model[sensorIter][2]
 	except:
 	    return
 
@@ -111,6 +140,7 @@ class MyWindow(Gtk.Window):
 	    self.sensorInterval = sensorIntervalModel[sensorIntervalIter][0]
 	except:
 	    return
+	
         try:
 	    sensorLimitIter = self.sensorLimitCombo.get_active_iter()
 	    if sensorLimitIter == None:
@@ -124,29 +154,45 @@ class MyWindow(Gtk.Window):
        	if page_num != 1:
 	    return
 	self.onComboChanged(self.sensorIntervalCombo)
-        sensor = fetcher.sensorData(self.sensorID)
-	sensor.setUpdateInterval(self.sensorInterval)
-	sensor.setLimit(self.sensorLimit)
-        sensor.update()
+        sensor1 = fetcher.sensorData(self.sensor1ID)
+	sensor1.setUpdateInterval(self.sensorInterval)
+	sensor1.setLimit(self.sensorLimit)
+        sensor1.update()
+
+        sensor2 = fetcher.sensorData(self.sensor2ID)
+	sensor2.setUpdateInterval(self.sensorInterval)
+	sensor2.setLimit(self.sensorLimit)
+        sensor2.update()
 
 	width = self.page2.get_allocation().width
 	height = self.page2.get_allocation().height
 
-        sensorTimestamps = sensor.graphData()[0]
-	sensorData = sensor.graphData()[1]
+        sensor1Timestamps = sensor1.graphData()[0]
+	sensor1Data = sensor1.graphData()[1]
+	sensor2Timestamps = sensor2.graphData()[0]
+	sensor2Data = sensor2.graphData()[1]
 
 	try:
 	    self.fig
 	except:
 	    self.fig = Figure()
 	try:
-	    self.ax
+	    self.ax1
 	except:
-	    self.ax = self.fig.add_subplot(111)
+	    self.ax1 = self.fig.add_subplot(111)
 	else:
-	    self.ax.cla()
+	    self.ax1.cla()
+	try:
+            self.ax2
+        except:
+            self.ax2 = self.ax1.twinx()
+        else:
+            self.ax2.cla()
+
+	print 'Sensor1ID = {}, sensor2ID = {}'.format(self.sensor1ID, self.sensor2ID)
         
-	self.ax.plot_date(sensorTimestamps, sensorData, '-')
+	self.ax1.plot_date(sensor1Timestamps, sensor1Data, '-')
+        self.ax2.plot_date(sensor2Timestamps, sensor2Data, 'r-')
 
 	plt.show()
 	plt.pause(0.0001)
