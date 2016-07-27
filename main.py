@@ -4,20 +4,24 @@ import fetcher
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
-import matplotlib.pyplot as plt
 from matplotlib.dates import MinuteLocator, HourLocator, DateFormatter, DayLocator
 import numpy as np
 from matplotlib.figure import Figure
-from numpy import arange, pi, random, linspace
+from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas
+from matplotlib.dates import MinuteLocator, HourLocator, DateFormatter, DayLocator
+import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import matplotlib.patches as mpatches
+from numpy import arange, pi, random, linspace
 
 class MyWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
 	self.set_border_width(3)
-	self.sensor1ID = 0
-	self.sensor2ID = 2
+	self.sensor1DBID = 0
+	self.sensor2DBID = 0
+	self.sensor1UIID = 0
+	self.sensor2UIID = 0
 	self.sensorInterval = 120
 	self.sensorLimit = 1
 
@@ -127,15 +131,17 @@ class MyWindow(Gtk.Window):
     def onComboChanged(self, combo):
         sensorData = fetcher.sensors()
 	sensorData.update()
+
 	try:
 	    sensorIter = self.sensor1Combo.get_active_iter()
 	    if sensorIter == None:
 	        return
 	    sensor1Model = self.sensor1Combo.get_model()
-	    self.sensor1ID = sensor1Model[sensorIter][2]
+	    self.sensor1DBID = sensor1Model[sensorIter][2]
+	    self.sensor1UIID = sensor1Model[sensorIter][0]
 
-	    self.sensor1MinDate.set_label(sensorData.sensorMinTimestamp(self.sensor1ID))
-	    self.sensor1MaxDate.set_label(sensorData.sensorMaxTimestamp(self.sensor1ID))
+	    self.sensor1MinDate.set_label(sensorData.sensorMinTimestamp(self.sensor1UIID))
+	    self.sensor1MaxDate.set_label(sensorData.sensorMaxTimestamp(self.sensor1UIID))
 	except:
 	    return
         
@@ -144,10 +150,11 @@ class MyWindow(Gtk.Window):
 	    if sensorIter == None:
 	        return
 	    sensor2Model = self.sensor2Combo.get_model()
-	    self.sensor2ID = sensor2Model[sensorIter][2]
+	    self.sensor2DBID = sensor2Model[sensorIter][2]
+	    self.sensor2UIID = sensor2Model[sensorIter][0]
 	    
-	    self.sensor2MinDate.set_label(sensorData.sensorMinTimestamp(self.sensor2ID))
-	    self.sensor2MaxDate.set_label(sensorData.sensorMaxTimestamp(self.sensor2ID))
+	    self.sensor2MinDate.set_label(sensorData.sensorMinTimestamp(self.sensor2UIID))
+	    self.sensor2MaxDate.set_label(sensorData.sensorMaxTimestamp(self.sensor2UIID))
 	except:
 	    return
 
@@ -159,7 +166,7 @@ class MyWindow(Gtk.Window):
 	    self.sensorInterval = sensorIntervalModel[sensorIntervalIter][0]
 	except:
 	    return
-	
+
         try:
 	    sensorLimitIter = self.sensorLimitCombo.get_active_iter()
 	    if sensorLimitIter == None:
@@ -168,18 +175,21 @@ class MyWindow(Gtk.Window):
 	    self.sensorLimit = sensorLimitModel[sensorLimitIter][0]
 	except:
 	    return
-	
-	
+
     def onNotebookChanged(self, notebook, page, page_num):
        	if page_num != 1:
 	    return
+	    
+	sensors = fetcher.sensors()
+        sensors.update()
+
 	self.onComboChanged(self.sensorIntervalCombo)
-        sensor1 = fetcher.sensorData(self.sensor1ID)
+        sensor1 = fetcher.sensorData(self.sensor1DBID)
 	sensor1.setUpdateInterval(self.sensorInterval)
 	sensor1.setLimit(self.sensorLimit)
         sensor1.update()
 
-        sensor2 = fetcher.sensorData(self.sensor2ID)
+        sensor2 = fetcher.sensorData(self.sensor2DBID)
 	sensor2.setUpdateInterval(self.sensorInterval)
 	sensor2.setLimit(self.sensorLimit)
         sensor2.update()
@@ -209,10 +219,13 @@ class MyWindow(Gtk.Window):
         else:
             self.ax2.cla()
 
-	print 'Sensor1ID = {}, sensor2ID = {}'.format(self.sensor1ID, self.sensor2ID)
+	print 'Sensor1ID = {}, sensor2ID = {}'.format(self.sensor1DBID, self.sensor2DBID)
         
-	self.ax1.plot_date(sensor1Timestamps, sensor1Data, '-')
-        self.ax2.plot_date(sensor2Timestamps, sensor2Data, 'r-')
+        bluelabel = '{} ({})'.format(sensors.sensorDescription(self.sensor1UIID), sensors.sensorUnit(self.sensor1UIID))
+        redlabel  = '{} ({})'.format(sensors.sensorDescription(self.sensor2UIID), sensors.sensorUnit(self.sensor2UIID))
+        
+	blueplt = self.ax1.plot_date(sensor1Timestamps, sensor1Data, '-', label=bluelabel)
+        redplt = self.ax2.plot_date(sensor2Timestamps, sensor2Data, 'r-', label=redlabel)
 
 	plt.show()
 	plt.pause(0.0001)
