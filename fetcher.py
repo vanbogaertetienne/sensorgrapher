@@ -18,7 +18,7 @@ class sensorData:
         self._sensorID = sensorID
 
     def update(self):
-        url = 'https://vbnetwork.be/~etienne/temptrend/getValues.inc.php?auth=edison1&sensorID={}&interval={}&limit={}'.format(self.sensorID(), self.updateInterval(), self.limit())
+        url = 'https://vbnetwork.be/~etienne/temptrend/getValues.inc.php?auth=edison1&sensorID={}&interval={}&numdays={}'.format(self.sensorID(), self.updateInterval(), self.limit())
 	jsonRequest = urllib2.urlopen(url)
 	jsonText = jsonRequest.read()
 	try:
