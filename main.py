@@ -35,6 +35,9 @@ class MyWindow(Gtk.Window):
 	self.page1.set_border_width(10)
 	self.page1.set_column_spacing(20)
 	self.page1.set_row_spacing(20)
+
+	self.page1.attach(Gtk.Label('Minimum date available'), 2, 0, 1, 1)
+	self.page1.attach(Gtk.Label('Maximum date available'), 3, 0, 1, 1)
         
 	sensors1 = Gtk.ListStore(int, str, int)
 	sensors2 = Gtk.ListStore(int, str, int)
@@ -53,8 +56,12 @@ class MyWindow(Gtk.Window):
 	self.sensor1Combo.connect("changed", self.onComboChanged)
 	self.sensor1Combo.set_id_column(2)
 	self.sensor1Combo.set_active(0)
-	self.page1.attach(Gtk.Label('Sensor 1'), 0, 0, 1, 1)
-	self.page1.attach(self.sensor1Combo, 1, 0, 1, 1)
+	self.page1.attach(Gtk.Label('Sensor 1'), 0, 1, 1, 1)
+	self.page1.attach(self.sensor1Combo, 1, 1, 1, 1)
+	self.sensor1MinDate = Gtk.Label('')
+	self.sensor1MaxDate = Gtk.Label('')
+	self.page1.attach(self.sensor1MinDate, 2, 1, 1, 1)
+	self.page1.attach(self.sensor1MaxDate, 3, 1, 1, 1)
 
 	sensor2DataRendererText = Gtk.CellRendererText()
         sensor2Data = fetcher.sensors()
@@ -70,8 +77,12 @@ class MyWindow(Gtk.Window):
 	self.sensor2Combo.connect("changed", self.onComboChanged)
 	self.sensor2Combo.set_id_column(2)
 	self.sensor2Combo.set_active(0)
-	self.page1.attach(Gtk.Label('Sensor 2'), 0, 1, 1, 1)
-	self.page1.attach(self.sensor2Combo, 1, 1, 1, 1)
+	self.page1.attach(Gtk.Label('Sensor 2'), 0, 2, 1, 1)
+	self.page1.attach(self.sensor2Combo, 1, 2, 1, 1)
+	self.sensor2MinDate = Gtk.Label('')
+	self.sensor2MaxDate = Gtk.Label('')
+	self.page1.attach(self.sensor2MinDate, 2, 2, 1, 1)
+	self.page1.attach(self.sensor2MaxDate, 3, 2, 1, 1)
 
 	sensorIntervalRendererText = Gtk.CellRendererText()
 	sensorInterval = Gtk.ListStore(int, str)
@@ -88,8 +99,8 @@ class MyWindow(Gtk.Window):
 	self.sensorIntervalCombo.add_attribute(sensorIntervalRendererText, "text", 1)
 	self.sensorIntervalCombo.connect("changed", self.onComboChanged)
 	self.sensorIntervalCombo.set_active(3)
-	self.page1.attach(Gtk.Label('Sensor Data Interval'), 0, 2, 1, 1)
-	self.page1.attach(self.sensorIntervalCombo, 1, 2, 1, 1)
+	self.page1.attach(Gtk.Label('Sensor Data Interval'), 0, 3, 1, 1)
+	self.page1.attach(self.sensorIntervalCombo, 1, 3, 1, 1)
 
         sensorLimitRendererText = Gtk.CellRendererText()
         sensorLimit = Gtk.ListStore(int, str)
@@ -103,8 +114,8 @@ class MyWindow(Gtk.Window):
         self.sensorLimitCombo.add_attribute(sensorLimitRendererText, "text", 1)
         self.sensorLimitCombo.connect("changed", self.onComboChanged)
         self.sensorLimitCombo.set_active(0)
-        self.page1.attach(Gtk.Label('Limit Sensor Data'), 0, 3, 1, 1)
-        self.page1.attach(self.sensorLimitCombo, 1, 3, 1, 1)
+        self.page1.attach(Gtk.Label('Limit Sensor Data'), 0, 4, 1, 1)
+        self.page1.attach(self.sensorLimitCombo, 1, 4, 1, 1)
 
 	
 	self.notebook.append_page(self.page1, Gtk.Label('Sensors'))
@@ -114,12 +125,17 @@ class MyWindow(Gtk.Window):
 	self.notebook.append_page(self.page2, Gtk.Label('Graph'))
     
     def onComboChanged(self, combo):
+        sensorData = fetcher.sensors()
+	sensorData.update()
 	try:
 	    sensorIter = self.sensor1Combo.get_active_iter()
 	    if sensorIter == None:
 	        return
 	    sensor1Model = self.sensor1Combo.get_model()
 	    self.sensor1ID = sensor1Model[sensorIter][2]
+
+	    self.sensor1MinDate.set_label(sensorData.sensorMinTimestamp(self.sensor1ID))
+	    self.sensor1MaxDate.set_label(sensorData.sensorMaxTimestamp(self.sensor1ID))
 	except:
 	    return
         
@@ -129,6 +145,9 @@ class MyWindow(Gtk.Window):
 	        return
 	    sensor2Model = self.sensor2Combo.get_model()
 	    self.sensor2ID = sensor2Model[sensorIter][2]
+	    
+	    self.sensor2MinDate.set_label(sensorData.sensorMinTimestamp(self.sensor2ID))
+	    self.sensor2MaxDate.set_label(sensorData.sensorMaxTimestamp(self.sensor2ID))
 	except:
 	    return
 
@@ -149,6 +168,7 @@ class MyWindow(Gtk.Window):
 	    self.sensorLimit = sensorLimitModel[sensorLimitIter][0]
 	except:
 	    return
+	
 	
     def onNotebookChanged(self, notebook, page, page_num):
        	if page_num != 1:

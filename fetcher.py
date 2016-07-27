@@ -103,3 +103,11 @@ class sensors:
     def sensorUnitDescription(self, sensorID):
         if ( isinstance( sensorID, (int, long) ) ):
 	    return self._data[sensorID]['unitdescription']
+    
+    def sensorMaxTimestamp( self, sensorID):
+    	if ( isinstance( sensorID, (int, long) ) ):
+	    return self._data[sensorID]['maxtime']
+
+    def sensorMinTimestamp( self, sensorID):
+        if ( isinstance( sensorID, (int, long) ) ):
+	    return self._data[sensorID]['mintime']
