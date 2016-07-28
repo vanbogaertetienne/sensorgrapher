@@ -3,7 +3,7 @@
 import fetcher
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
 from matplotlib.dates import MinuteLocator, HourLocator, DateFormatter, DayLocator
 import numpy as np
 from matplotlib.figure import Figure
@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.patches as mpatches
 from numpy import arange, pi, random, linspace
+import threading
 
 class MyWindow(Gtk.Window):
     def __init__(self):
@@ -29,6 +30,13 @@ class MyWindow(Gtk.Window):
 	headerBar.set_show_close_button(True)
 	headerBar.props.title = "Sensor Grapher"
 	self.set_titlebar(headerBar)
+
+	refreshButton = Gtk.Button()
+	refreshIcon = Gio.ThemedIcon(name="mail-send-receive-symbolic")
+	refreshImage = Gtk.Image.new_from_gicon(refreshIcon, Gtk.IconSize.BUTTON)
+	refreshButton.add(refreshImage)
+	refreshButton.connect("clicked", self.onRefreshClicked)
+	headerBar.pack_end(refreshButton)
 
 	self.notebook = Gtk.Notebook()
 	self.notebook.set_tab_pos(0)
@@ -176,6 +184,12 @@ class MyWindow(Gtk.Window):
 	except:
 	    return
 
+    def onRefreshClicked(self, button):
+        self.refresh()
+
+    def refresh(self):
+        self.onNotebookChanged(self.notebook, self.page2, 1)
+
     def onNotebookChanged(self, notebook, page, page_num):
        	if page_num != 1:
 	    return
@@ -240,8 +254,8 @@ class MyWindow(Gtk.Window):
 	except:
 	    self.canvas = FigureCanvas(self.fig)
 	    self.sw.add_with_viewport(self.canvas)
-	    self.sw.add_with_viewport(self.canvas)
 	self.fig.canvas.draw()
+	threading.Timer(self.sensorInterval, self.refresh)
 
 win = MyWindow()
 win.connect("delete-event", Gtk.main_quit)
